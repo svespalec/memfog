@@ -7,7 +7,7 @@ based on research by [secret.club](https://secret.club/2021/05/23/big-memory.htm
 ## improvements over original
 - uses transacted files (no disk artifacts)
 - stacks multiple mappings for multiplied effect
-- clean c++23 single-header library
+- clean c++23 header-only library
 - configurable parameters
 
 ## limitations
