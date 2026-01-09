@@ -46,7 +46,7 @@ int main() {
   auto result = memfog::protect();
 
   if ( !result ) {
-      std::println( "error: {}", memfog::to_string( result.error() ) );
+    std::println( "error: {}", memfog::to_string( result.error() ) );
     return -1;
   }
 
@@ -71,7 +71,12 @@ auto result = memfog::protect( cfg );
 ## known behavior
 
 process termination takes longer than usual (1-5 minutes) because
-windows must clean up the large va reservations. this is unavoidable
+windows must clean up the large VA reservations. this is unavoidable
 without architectural changes.
 
 for applications requiring fast shutdown, consider a sacrificial child process pattern.
+
+## safety
+
+total reservation is capped at `RAM * ram_multiplier` (default 256x) to prevent
+system instability/bsods from excessive VA allocation.
