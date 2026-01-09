@@ -1,0 +1,72 @@
+.vs
+.vscode
+build/
+CMakeFiles
+output/
+CMakeCache.txt
+CMakeLists.txt.bak
+.idea
+cmake-build-*
+Debug
+x86
+x64
+vcpkg_installed
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+
+# Exception: allow libcurl library directory
+!neac/deps/http/lib/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.*
+
+# Docker
+.docker/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sqlite3
+*.db
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
