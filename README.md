@@ -22,12 +22,12 @@ it must walk billions of page table entries to answer the query. this
 takes minutes per region.
 
 ```
-normal 1MB region:    ~256 PTEs checked    -> microseconds
-reserved 12TB view:   ~3 billion PTEs      -> 3-4 minutes
+normal 1MB region:  ~256 PTEs checked -> microseconds
+reserved 12TB view: ~3 billion PTEs   -> 3-4 minutes
 ```
 
 the technique:
-
+ 
 1. `NtCreateTransaction` - sandbox for file ops, never committed
 2. `CreateFileTransactedA` - ghost file, invisible to filesystem
 3. `NtCreateSection` - section backed by the ghost file
@@ -46,8 +46,8 @@ int main() {
   auto result = memfog::protect();
 
   if ( !result ) {
-    // handle error: result.error()
-    return 1;
+      std::println( "error: {}", memfog::to_string( result.error() ) );
+    return -1;
   }
 
   // result->total_reserved_bytes contains total VA reserved
