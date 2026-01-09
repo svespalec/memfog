@@ -1,8 +1,6 @@
 # memfog
 
-anti-memory-scanning technique for windows.
-
-based on research by [secret.club](https://secret.club/2021/05/23/big-memory.html).
+an anti memory scan technique for windows based on research by [secret.club](https://secret.club/2021/05/23/big-memory.html).
 
 ## improvements over original
 - uses transacted files (no disk artifacts)
@@ -24,41 +22,51 @@ it must walk billions of page table entries to answer the query. this
 takes minutes per region.
 
 ```
-normal region (1mb committed):
-    kernel checks ~256 page table entries
-    query returns in microseconds
-
-reserved section view (12tb):
-    kernel walks ~3 billion page table entries
-    query returns in 3-4 minutes
+normal 1MB region:    ~256 PTEs checked    -> microseconds
+reserved 12TB view:   ~3 billion PTEs      -> 3-4 minutes
 ```
 
 the technique:
 
-1. create a transaction (`NtCreateTransaction`)
-   - acts as a sandbox for file operations
-   - never committed, so no disk artifacts
+1. `NtCreateTransaction` - sandbox for file ops, never committed
+2. `CreateFileTransactedA` - ghost file, invisible to filesystem
+3. `NtCreateSection` - section backed by the ghost file
+4. `NtMapViewOfSection` with `MEM_RESERVE` - reserve terabytes of VA space
+5. repeat step 4 - stack multiple regions, multiply scan time
 
-2. create a file inside the transaction (`CreateFileTransactedA`)
-   - file exists only in transaction context
-   - invisible to filesystem, leaves no trace
+scanners can't skip these regions because they appear legitimate until
+the slow query completes.
 
-3. create a section backed by that file (`NtCreateSection`)
-   - section object now exists in kernel
-   - requires non-empty file backing
+## usage
 
-4. map a view with the `MEM_RESERVE` flag (`NtMapViewOfSection`)
-   - normally view_size must be <= section_size
-   - with `0x2000` flag: view_size can be terabytes larger
-   - kernel reserves virtual address space without committing pages
+```cpp
+#include <memfog/memfog.hxx>
 
-5. repeat step 4 at different base addresses
-   - stack multiple huge regions
-   - each one multiplies the scan time
+int main() {
+  auto result = memfog::protect();
 
-scanners can't skip these regions because they don't know it's a trap
-until after the slow query completes. and skipping large regions would
-miss legitimate threats hiding in large mappings (databases, games, etc).
+  if ( !result ) {
+    // handle error: result.error()
+    return 1;
+  }
+
+  // result->total_reserved_bytes contains total VA reserved
+  // result->mappings contains info about each view
+}
+```
+
+customize with `memfog::config`:
+
+```cpp
+memfog::config cfg {
+  .view_count = 5,        // number of views to create (default: 3)
+  .max_size_shift = 44,   // max view size 2^44 = 16TB (default)
+  .min_size_shift = 39,   // min view size 2^39 = 512GB (default)
+  .ram_multiplier = 256   // max reservation = RAM * 256 (default)
+};
+
+auto result = memfog::protect( cfg );
+```
 
 ## known behavior
 
